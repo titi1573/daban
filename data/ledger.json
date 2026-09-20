@@ -1,0 +1,91 @@
+{
+  "initial_capital": 100000,
+  "cash": 6226.0,
+  "start_date": "2026-09-20",
+  "last_buy_date": "2026-09-18",
+  "positions": [
+    {
+      "code": "002300",
+      "name": "太阳电缆",
+      "entry_date": "2026-09-18",
+      "entry_price": 8.67,
+      "shares": 2300,
+      "cost_per_share": 8.6722,
+      "last_price": 8.67
+    },
+    {
+      "code": "002471",
+      "name": "中超控股",
+      "entry_date": "2026-09-18",
+      "entry_price": 5.96,
+      "shares": 3300,
+      "cost_per_share": 5.9615,
+      "last_price": 5.96
+    },
+    {
+      "code": "301390",
+      "name": "经纬股份",
+      "entry_date": "2026-09-18",
+      "entry_price": 54.0,
+      "shares": 300,
+      "cost_per_share": 54.0167,
+      "last_price": 54.0
+    },
+    {
+      "code": "600448",
+      "name": "华纺股份",
+      "entry_date": "2026-09-18",
+      "entry_price": 3.54,
+      "shares": 5600,
+      "cost_per_share": 3.5409,
+      "last_price": 3.54
+    },
+    {
+      "code": "001211",
+      "name": "双枪科技",
+      "entry_date": "2026-09-18",
+      "entry_price": 25.88,
+      "shares": 700,
+      "cost_per_share": 25.8871,
+      "last_price": 25.88
+    }
+  ],
+  "closed_trades": [],
+  "log": [
+    {
+      "date": "2026-09-18",
+      "type": "buy",
+      "code": "002300",
+      "name": "太阳电缆",
+      "msg": "8.67×2300股 (成本含佣 ¥19946.00)"
+    },
+    {
+      "date": "2026-09-18",
+      "type": "buy",
+      "code": "002471",
+      "name": "中超控股",
+      "msg": "5.96×3300股 (成本含佣 ¥19673.00)"
+    },
+    {
+      "date": "2026-09-18",
+      "type": "buy",
+      "code": "301390",
+      "name": "经纬股份",
+      "msg": "54.00×300股 (成本含佣 ¥16205.00)"
+    },
+    {
+      "date": "2026-09-18",
+      "type": "buy",
+      "code": "600448",
+      "name": "华纺股份",
+      "msg": "3.54×5600股 (成本含佣 ¥19829.00)"
+    },
+    {
+      "date": "2026-09-18",
+      "type": "buy",
+      "code": "001211",
+      "name": "双枪科技",
+      "msg": "25.88×700股 (成本含佣 ¥18121.00)"
+    }
+  ]
+}
