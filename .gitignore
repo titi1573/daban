@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 环境变量
+.env
+
+# 生成结果(每日重跑覆盖, 不入库)
+data/latest/
