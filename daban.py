@@ -19,6 +19,9 @@
   - 流通市值 ≤100亿 (中小盘弹性大)
   - 封板资金 ≥5000万 (封单够厚)
   - 排除 ST
+  - 排除一字板 (首封≤09:26集合竞价, 买不进)
+  - 20%板(创业/科创)只打首板 (连板2+断板代价大)
+  - 连板2+必须主线板块 (涨停家数≥3)
   - 优选主线板块 (当日涨停家数最多的行业)
 
 卖出规则 (次日):
@@ -42,10 +45,27 @@ MAX_FLOAT_MV = 100e8     # 流通市值上限 100亿
 MAX_BREAK = 1            # 炸板次数上限
 EARLY_SEAL = "103000"    # 首次封板时间不晚于 10:30
 MIN_SEAL_AMOUNT = 5000e4  # 封板资金下限 5000万
+# 复盘后新增(2026-09-21): 排除买不进/高波动/孤立高标
+YIZIBAN_SEAL = "092600"           # 首封≤09:26(集合竞价)=一字板, 买不进 → 排除
+EXCLUDE_20PCT_MULTI = True        # 20%板(创业/科创)只打首板, 连板2+排除
+MAINLINE_MIN_COUNT = 3            # 主线板块最少涨停家数(连板股须达到)
+REQUIRE_MAINLINE_FOR_MULTI = True # 连板2+必须主线板块
 
 
 def is_st(name):
     return "ST" in str(name).upper()
+
+
+def board_pct(code, name=""):
+    """近似涨跌停幅度 (主板10/创业科创20/北交30/ST 5)"""
+    c = str(code)
+    if "ST" in str(name).upper():
+        return 0.05
+    if c.startswith(("688", "689", "300", "301")):
+        return 0.20
+    if c.startswith(("8", "4", "92")):
+        return 0.30
+    return 0.10
 
 
 def latest_trade_date():
@@ -114,6 +134,19 @@ def screen(df, trade_date):
         if seal_amt < MIN_SEAL_AMOUNT:
             continue
         sector = r["所属行业"]
+        code = str(r["代码"])
+
+        # 复盘后新增过滤(2026-09-21): 排除买不进/高波动/孤立高标
+        # 1) 一字板(集合竞价封板, 开盘即涨停买不进)
+        if seal_time <= YIZIBAN_SEAL:
+            continue
+        # 2) 20%板(创业/科创)只打首板, 连板2+断板代价大
+        if EXCLUDE_20PCT_MULTI and conn >= 2 and board_pct(code, name) >= 0.20:
+            continue
+        # 3) 连板2+必须主线板块(涨停家数≥N), 避免孤立高标
+        if REQUIRE_MAINLINE_FOR_MULTI and conn >= 2 and sector_cnt.get(sector, 0) < MAINLINE_MIN_COUNT:
+            continue
+
         # 评分: 封板质量 + 连板 + 主线板块加成
         score = 0
         score += 0 if breaks == 0 else -20

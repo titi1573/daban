@@ -3,7 +3,7 @@
 用法: python sell_sim.py
 
 卖出规则 (与 README 一致):
-  1. 低开 >5% → 无条件止损 (开盘价卖)
+  1. 低开 >3% → 无条件止损 (开盘价卖)
   2. 继续涨停 → 持有 (吃连板溢价, 最多连续持有 5 日)
   3. 不涨停 → 卖 (不板就走, 收盘价卖)
 
@@ -15,6 +15,7 @@
 from ledger import load_state, save_state, limit_pct, fetch_daily, today_str, sell_position
 
 MAX_HOLD_DAYS = 5  # 连续涨停最多持有5日, 之后强制止盈
+LOW_OPEN_STOP_PCT = 3  # 低开>3%无条件止损 (原5%, 复盘后收紧)
 
 
 def _f(x):
@@ -30,9 +31,9 @@ def decide(bars, entry_price, lp, max_hold=MAX_HOLD_DAYS):
     prev_close = entry_price
     hold_days = 0
     for bar in bars:
-        if bar["open"] <= prev_close * 0.95:
+        if bar["open"] <= prev_close * (1 - LOW_OPEN_STOP_PCT / 100):
             return {"status": "sell", "date": bar["date"], "price": round(bar["open"], 2),
-                    "reason": "低开>5%止损"}
+                    "reason": f"低开>{LOW_OPEN_STOP_PCT}%止损"}
         if bar["close"] >= prev_close * (1 + lp - 0.005):
             hold_days += 1
             if hold_days >= max_hold:
