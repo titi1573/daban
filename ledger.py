@@ -23,7 +23,7 @@ LEDGER_MD = DATA_DIR / "LEDGER.md"
 DABAN_JSON = LATEST_DIR / "daban.json"
 
 # ---- 账户参数 ----
-CAPITAL = 100000        # 起始资金 10万 (可改)
+CAPITAL = 10000         # 起始资金 1万 (可改)
 MAX_POSITIONS = 5       # 最多持仓数 (README: 分散3~5只)
 POSITION_PCT = 0.20     # 单票仓位 20% (README: 单票10~20%)
 
