@@ -1,36 +1,9 @@
 {
   "initial_capital": 100000,
-  "cash": 6226.0,
+  "cash": 79352.39,
   "start_date": "2026-09-20",
   "last_buy_date": "2026-09-18",
   "positions": [
-    {
-      "code": "002300",
-      "name": "太阳电缆",
-      "entry_date": "2026-09-18",
-      "entry_price": 8.67,
-      "shares": 2300,
-      "cost_per_share": 8.6722,
-      "last_price": 8.67
-    },
-    {
-      "code": "002471",
-      "name": "中超控股",
-      "entry_date": "2026-09-18",
-      "entry_price": 5.96,
-      "shares": 3300,
-      "cost_per_share": 5.9615,
-      "last_price": 5.96
-    },
-    {
-      "code": "301390",
-      "name": "经纬股份",
-      "entry_date": "2026-09-18",
-      "entry_price": 54.0,
-      "shares": 300,
-      "cost_per_share": 54.0167,
-      "last_price": 54.0
-    },
     {
       "code": "600448",
       "name": "华纺股份",
@@ -38,19 +11,59 @@
       "entry_price": 3.54,
       "shares": 5600,
       "cost_per_share": 3.5409,
-      "last_price": 3.54
+      "last_price": 3.89
+    }
+  ],
+  "closed_trades": [
+    {
+      "code": "002300",
+      "name": "太阳电缆",
+      "entry_date": "2026-09-18",
+      "entry_price": 8.67,
+      "exit_date": "2026-09-21",
+      "exit_price": 8.72,
+      "shares": 2300,
+      "net_pnl": 94.9,
+      "net_return_pct": 0.48,
+      "exit_reason": "不板就走"
+    },
+    {
+      "code": "002471",
+      "name": "中超控股",
+      "entry_date": "2026-09-18",
+      "entry_price": 5.96,
+      "exit_date": "2026-09-21",
+      "exit_price": 5.95,
+      "shares": 3300,
+      "net_pnl": -52.77,
+      "net_return_pct": -0.27,
+      "exit_reason": "不板就走"
+    },
+    {
+      "code": "301390",
+      "name": "经纬股份",
+      "entry_date": "2026-09-18",
+      "entry_price": 54.0,
+      "exit_date": "2026-09-21",
+      "exit_price": 50.39,
+      "shares": 300,
+      "net_pnl": -1100.57,
+      "net_return_pct": -6.79,
+      "exit_reason": "不板就走"
     },
     {
       "code": "001211",
       "name": "双枪科技",
       "entry_date": "2026-09-18",
       "entry_price": 25.88,
+      "exit_date": "2026-09-21",
+      "exit_price": 26.25,
       "shares": 700,
-      "cost_per_share": 25.8871,
-      "last_price": 25.88
+      "net_pnl": 239.84,
+      "net_return_pct": 1.32,
+      "exit_reason": "不板就走"
     }
   ],
-  "closed_trades": [],
   "log": [
     {
       "date": "2026-09-18",
@@ -86,6 +99,34 @@
       "code": "001211",
       "name": "双枪科技",
       "msg": "25.88×700股 (成本含佣 ¥18121.00)"
+    },
+    {
+      "date": "2026-09-21",
+      "type": "sell",
+      "code": "002300",
+      "name": "太阳电缆",
+      "msg": "不板就走: 8.72×2300股 (净 ¥+94.90)"
+    },
+    {
+      "date": "2026-09-21",
+      "type": "sell",
+      "code": "002471",
+      "name": "中超控股",
+      "msg": "不板就走: 5.95×3300股 (净 ¥-52.77)"
+    },
+    {
+      "date": "2026-09-21",
+      "type": "sell",
+      "code": "301390",
+      "name": "经纬股份",
+      "msg": "不板就走: 50.39×300股 (净 ¥-1100.57)"
+    },
+    {
+      "date": "2026-09-21",
+      "type": "sell",
+      "code": "001211",
+      "name": "双枪科技",
+      "msg": "不板就走: 26.25×700股 (净 ¥+239.84)"
     }
   ]
 }

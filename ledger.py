@@ -62,14 +62,25 @@ def today_str():
 
 
 def fetch_daily(code, start_date, end_date=None):
-    """不复权日K线 (打板用真实价格, 涨停/止损判断基于实际价格), 失败返回 None"""
+    """不复权日K线 (打板用真实价格), 东财优先失败降级新浪, 失败返回 None"""
     end = end_date or today_str()
+    c = raw_code(code)
     try:
-        df = ak.stock_zh_a_hist(symbol=raw_code(code), period="daily",
+        df = ak.stock_zh_a_hist(symbol=c, period="daily",
                                 start_date=start_date, end_date=end, adjust="")
-        return df if df is not None and not df.empty else None
+        if df is not None and not df.empty:
+            return df
     except Exception:
-        return None
+        pass
+    try:
+        sym = ("sh" if c.startswith(("6", "9")) else "sz") + c
+        df = ak.stock_zh_a_daily(symbol=sym, start_date=start_date, end_date=end, adjust="")
+        if df is not None and not df.empty:
+            return df.rename(columns={"date": "日期", "open": "开盘", "high": "最高",
+                                      "low": "最低", "close": "收盘"})
+    except Exception:
+        pass
+    return None
 
 
 # ---- 台账状态 ----
