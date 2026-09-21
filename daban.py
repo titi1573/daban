@@ -20,6 +20,7 @@
   - 封板资金 ≥5000万 (封单够厚)
   - 排除 ST
   - 排除一字板 (首封≤09:26集合竞价, 买不进)
+  - 秒板标记扣分 (首封≤09:31开盘秒封, 可能买不进)
   - 20%板(创业/科创)只打首板 (连板2+断板代价大)
   - 连板2+必须主线板块 (涨停家数≥3)
   - 优选主线板块 (当日涨停家数最多的行业)
@@ -30,6 +31,7 @@
   3. 次日低开 >5% → 无条件止损
 """
 import json
+import sys
 from datetime import date
 from pathlib import Path
 
@@ -46,10 +48,14 @@ MAX_BREAK = 1            # 炸板次数上限
 EARLY_SEAL = "103000"    # 首次封板时间不晚于 10:30
 MIN_SEAL_AMOUNT = 5000e4  # 封板资金下限 5000万
 # 复盘后新增(2026-09-21): 排除买不进/高波动/孤立高标
-YIZIBAN_SEAL = "092600"           # 首封≤09:26(集合竞价)=一字板, 买不进 → 排除
-EXCLUDE_20PCT_MULTI = True        # 20%板(创业/科创)只打首板, 连板2+排除
-MAINLINE_MIN_COUNT = 3            # 主线板块最少涨停家数(连板股须达到)
-REQUIRE_MAINLINE_FOR_MULTI = True # 连板2+必须主线板块
+EXCLUDE_YIZIBAN = True             # 排除一字板(首封≤YIZIBAN_SEAL)
+YIZIBAN_SEAL = "092600"            # 一字板: 首封≤09:26(集合竞价)
+MIAOBAN_SEAL = "093100"            # 秒板: 首封≤09:31(开盘秒封, 可能买不进)
+EXCLUDE_20PCT_MULTI = True         # 20%板(创业/科创)只打首板, 连板2+排除
+MAINLINE_MIN_COUNT = 3             # 主线板块最少涨停家数(连板股须达到)
+REQUIRE_MAINLINE_FOR_MULTI = True  # 连板2+必须主线板块
+BREAK_RATE_GOOD = 40               # 情绪"好"的炸板率上限 %
+BREAK_RATE_MID = 60                # 情绪"中"的炸板率上限 %
 
 
 def is_st(name):
@@ -138,8 +144,9 @@ def screen(df, trade_date):
 
         # 复盘后新增过滤(2026-09-21): 排除买不进/高波动/孤立高标
         # 1) 一字板(集合竞价封板, 开盘即涨停买不进)
-        if seal_time <= YIZIBAN_SEAL:
+        if EXCLUDE_YIZIBAN and seal_time <= YIZIBAN_SEAL:
             continue
+        miaoban = seal_time <= MIAOBAN_SEAL  # 秒板(开盘秒封), 可能买不进
         # 2) 20%板(创业/科创)只打首板, 连板2+断板代价大
         if EXCLUDE_20PCT_MULTI and conn >= 2 and board_pct(code, name) >= 0.20:
             continue
@@ -147,11 +154,12 @@ def screen(df, trade_date):
         if REQUIRE_MAINLINE_FOR_MULTI and conn >= 2 and sector_cnt.get(sector, 0) < MAINLINE_MIN_COUNT:
             continue
 
-        # 评分: 封板质量 + 连板 + 主线板块加成
+        # 评分: 封板质量 + 连板 + 主线板块加成 + 秒板扣分
         score = 0
         score += 0 if breaks == 0 else -20
         score += 10 if conn >= 2 else 0
         score += sector_cnt.get(sector, 0) * 3
+        score += -5 if miaoban else 0
         picks.append({
             "code": r["代码"], "name": name, "sector": sector,
             "consecutive": conn, "price": round(float(r["最新价"]), 2),
@@ -159,15 +167,17 @@ def screen(df, trade_date):
             "seal_amount_yi": round(seal_amt / 1e8, 2),
             "first_seal_time": seal_time,
             "float_mv_yi": round(float_mv / 1e8, 1),
+            "miaoban": miaoban,
             "score": score,
         })
 
     picks.sort(key=lambda x: (-x["score"], -x["consecutive"]))
 
-    # 情绪周期
-    if total >= 60 and max_conn >= 4:
+    # 情绪周期: 涨停家数 + 连板高度 + 炸板率(封板质量)
+    break_rate = break_homes / total * 100 if total else 0
+    if total >= 60 and max_conn >= 4 and break_rate <= BREAK_RATE_GOOD:
         sentiment = "好(可打)"
-    elif total >= 30:
+    elif total >= 30 and break_rate <= BREAK_RATE_MID:
         sentiment = "中(谨慎打)"
     else:
         sentiment = "差(少打/不打)"
@@ -178,7 +188,7 @@ def screen(df, trade_date):
         "max_consecutive": max_conn,
         "total_break_times": total_break,
         "break_homes": break_homes,
-        "break_rate": round(break_homes / total * 100, 1) if total else 0,
+        "break_rate": round(break_rate, 1),
         "sentiment": sentiment,
         "top_sectors": [{"sector": s, "count": c} for s, c in top_sectors],
         "picks": picks,
@@ -186,6 +196,14 @@ def screen(df, trade_date):
 
 
 def main():
+    global EXCLUDE_YIZIBAN, EXCLUDE_20PCT_MULTI, REQUIRE_MAINLINE_FOR_MULTI
+    if "--no-yiziban" in sys.argv:
+        EXCLUDE_YIZIBAN = False
+    if "--no-20pct" in sys.argv:
+        EXCLUDE_20PCT_MULTI = False
+    if "--no-mainline" in sys.argv:
+        REQUIRE_MAINLINE_FOR_MULTI = False
+
     print("=== 打板选股(追涨停) ===\n")
     trade_date = latest_trade_date()
     print(f"交易日: {trade_date.strftime('%Y-%m-%d')}\n")
@@ -201,7 +219,8 @@ def main():
     print(f"打板候选 {len(result['picks'])} 只:")
     print(f"{'名称':8s}{'代码':8s}{'行业':8s}{'连板':>4}{'现价':>8}{'换手':>6}{'炸板':>4}{'封单亿':>7}{'市值亿':>7}{'首封':>7}{'评分':>6}")
     for p in result["picks"]:
-        print(f"{p['name']:8s}{p['code']:8s}{p['sector']:8s}{p['consecutive']:>4}{p['price']:>8.2f}"
+        nm = ("秒" + p["name"]) if p.get("miaoban") else p["name"]
+        print(f"{nm:8s}{p['code']:8s}{p['sector']:8s}{p['consecutive']:>4}{p['price']:>8.2f}"
               f"{p['turnover']:>6.1f}{p['break_times']:>4}{p['seal_amount_yi']:>7.2f}{p['float_mv_yi']:>7.1f}"
               f"{p['first_seal_time']:>7}{p['score']:>6}")
 
