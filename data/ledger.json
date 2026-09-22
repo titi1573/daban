@@ -1,38 +1,47 @@
 {
   "initial_capital": 10000,
-  "cash": 5253.0,
+  "cash": 9871.68,
   "start_date": "2026-09-21",
   "last_buy_date": "2026-09-21",
-  "positions": [
+  "positions": [],
+  "closed_trades": [
     {
       "code": "002453",
       "name": "华软科技",
       "entry_date": "2026-09-21",
       "entry_price": 5.87,
+      "exit_date": "2026-09-22",
+      "exit_price": 5.31,
       "shares": 300,
-      "cost_per_share": 5.8867,
-      "last_price": 5.87
+      "net_pnl": -178.81,
+      "net_return_pct": -10.12,
+      "exit_reason": "不板就走"
     },
     {
       "code": "600785",
       "name": "新华百货",
       "entry_date": "2026-09-21",
       "entry_price": 11.35,
+      "exit_date": "2026-09-22",
+      "exit_price": 11.23,
       "shares": 100,
-      "cost_per_share": 11.4,
-      "last_price": 11.35
+      "net_pnl": -22.56,
+      "net_return_pct": -1.98,
+      "exit_reason": "不板就走"
     },
     {
       "code": "002084",
       "name": "海鸥住工",
       "entry_date": "2026-09-21",
       "entry_price": 6.12,
+      "exit_date": "2026-09-22",
+      "exit_price": 6.4,
       "shares": 300,
-      "cost_per_share": 6.1367,
-      "last_price": 6.12
+      "net_pnl": 73.03,
+      "net_return_pct": 3.97,
+      "exit_reason": "不板就走"
     }
   ],
-  "closed_trades": [],
   "log": [
     {
       "date": "2026-09-21",
@@ -54,6 +63,27 @@
       "code": "002084",
       "name": "海鸥住工",
       "msg": "6.12×300股 (成本含佣 ¥1841.00)"
+    },
+    {
+      "date": "2026-09-22",
+      "type": "sell",
+      "code": "002453",
+      "name": "华软科技",
+      "msg": "不板就走: 5.31×300股 (净 ¥-178.81)"
+    },
+    {
+      "date": "2026-09-22",
+      "type": "sell",
+      "code": "600785",
+      "name": "新华百货",
+      "msg": "不板就走: 11.23×100股 (净 ¥-22.56)"
+    },
+    {
+      "date": "2026-09-22",
+      "type": "sell",
+      "code": "002084",
+      "name": "海鸥住工",
+      "msg": "不板就走: 6.40×300股 (净 ¥+73.03)"
     }
   ]
 }
