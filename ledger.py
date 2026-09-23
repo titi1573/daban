@@ -26,6 +26,7 @@ DABAN_JSON = LATEST_DIR / "daban.json"
 CAPITAL = 10000         # 起始资金 1万 (可改)
 MAX_POSITIONS = 5       # 最多持仓数 (README: 分散3~5只)
 POSITION_PCT = 0.20     # 单票仓位 20% (README: 单票10~20%)
+MIN_BUY_SCORE = 0       # 只买评分≥0的票 (排除炸板/高标等净得分为负的候选)
 
 # ---- 成本模型 (A股, 与 stock-review 一致) ----
 COMMISSION_RATE = 0.00025   # 佣金 万2.5
@@ -149,16 +150,23 @@ def buy_from_picks(state, result):
         return 0
 
     n_target = MAX_POSITIONS if "好" in sentiment else min(MAX_POSITIONS, 3)
+    qualified = [p for p in picks if p.get("score", 0) >= MIN_BUY_SCORE]
+    if not qualified:
+        print(f"  无评分≥{MIN_BUY_SCORE}的候选, 空仓")
+        state["last_buy_date"] = trade_date
+        save_state(state)
+        return 0
     held = {p["code"] for p in state["positions"]}
     bought = 0
-    for p in picks[:n_target]:
+    for p in qualified[:n_target]:
         code, name = str(p["code"]), p["name"]
         price = float(p.get("price", 0) or 0)
         if code in held or price <= 0:
             continue
         shares = int(CAPITAL * POSITION_PCT / price // 100) * 100
         if shares <= 0:
-            shares = affordable_shares(price, state["cash"])
+            # 高价股: 20%预算买不起1手, 现金够则买最低1手, 否则跳过
+            shares = 100 if 100 * price + trade_cost(100 * price, False) <= state["cash"] else 0
             if shares <= 0:
                 continue
         cost = shares * price

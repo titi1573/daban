@@ -1,9 +1,37 @@
 {
   "initial_capital": 10000,
-  "cash": 9871.68,
+  "cash": 3930.68,
   "start_date": "2026-09-21",
-  "last_buy_date": "2026-09-21",
-  "positions": [],
+  "last_buy_date": "2026-09-23",
+  "positions": [
+    {
+      "code": "002426",
+      "name": "胜利精密",
+      "entry_date": "2026-09-23",
+      "entry_price": 2.96,
+      "shares": 600,
+      "cost_per_share": 2.9683,
+      "last_price": 2.96
+    },
+    {
+      "code": "600293",
+      "name": "三峡新材",
+      "entry_date": "2026-09-23",
+      "entry_price": 3.7,
+      "shares": 500,
+      "cost_per_share": 3.71,
+      "last_price": 3.7
+    },
+    {
+      "code": "002849",
+      "name": "威星智能",
+      "entry_date": "2026-09-23",
+      "entry_price": 23.0,
+      "shares": 100,
+      "cost_per_share": 23.025,
+      "last_price": 23.0
+    }
+  ],
   "closed_trades": [
     {
       "code": "002453",
@@ -84,6 +112,27 @@
       "code": "002084",
       "name": "海鸥住工",
       "msg": "不板就走: 6.40×300股 (净 ¥+73.03)"
+    },
+    {
+      "date": "2026-09-23",
+      "type": "buy",
+      "code": "002426",
+      "name": "胜利精密",
+      "msg": "2.96×600股 (成本含佣 ¥1781.00)"
+    },
+    {
+      "date": "2026-09-23",
+      "type": "buy",
+      "code": "600293",
+      "name": "三峡新材",
+      "msg": "3.70×500股 (成本含佣 ¥1855.00)"
+    },
+    {
+      "date": "2026-09-23",
+      "type": "buy",
+      "code": "002849",
+      "name": "威星智能",
+      "msg": "23.00×200股 (成本含佣 ¥4605.00)"
     }
   ]
 }
