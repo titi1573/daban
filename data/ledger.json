@@ -1,37 +1,9 @@
 {
   "initial_capital": 10000,
-  "cash": 3930.68,
+  "cash": 9957.66,
   "start_date": "2026-09-21",
   "last_buy_date": "2026-09-23",
-  "positions": [
-    {
-      "code": "002426",
-      "name": "胜利精密",
-      "entry_date": "2026-09-23",
-      "entry_price": 2.96,
-      "shares": 600,
-      "cost_per_share": 2.9683,
-      "last_price": 2.96
-    },
-    {
-      "code": "600293",
-      "name": "三峡新材",
-      "entry_date": "2026-09-23",
-      "entry_price": 3.7,
-      "shares": 500,
-      "cost_per_share": 3.71,
-      "last_price": 3.7
-    },
-    {
-      "code": "002849",
-      "name": "威星智能",
-      "entry_date": "2026-09-23",
-      "entry_price": 23.0,
-      "shares": 100,
-      "cost_per_share": 23.025,
-      "last_price": 23.0
-    }
-  ],
+  "positions": [],
   "closed_trades": [
     {
       "code": "002453",
@@ -67,6 +39,42 @@
       "shares": 300,
       "net_pnl": 73.03,
       "net_return_pct": 3.97,
+      "exit_reason": "不板就走"
+    },
+    {
+      "code": "002426",
+      "name": "胜利精密",
+      "entry_date": "2026-09-23",
+      "entry_price": 2.96,
+      "exit_date": "2026-09-24",
+      "exit_price": 2.8,
+      "shares": 600,
+      "net_pnl": -106.82,
+      "net_return_pct": -6.0,
+      "exit_reason": "不板就走"
+    },
+    {
+      "code": "600293",
+      "name": "三峡新材",
+      "entry_date": "2026-09-23",
+      "entry_price": 3.7,
+      "exit_date": "2026-09-24",
+      "exit_price": 3.78,
+      "shares": 500,
+      "net_pnl": 29.06,
+      "net_return_pct": 1.57,
+      "exit_reason": "不板就走"
+    },
+    {
+      "code": "002849",
+      "name": "威星智能",
+      "entry_date": "2026-09-23",
+      "entry_price": 23.0,
+      "exit_date": "2026-09-24",
+      "exit_price": 24.75,
+      "shares": 100,
+      "net_pnl": 166.26,
+      "net_return_pct": 7.22,
       "exit_reason": "不板就走"
     }
   ],
@@ -133,6 +141,27 @@
       "code": "002849",
       "name": "威星智能",
       "msg": "23.00×200股 (成本含佣 ¥4605.00)"
+    },
+    {
+      "date": "2026-09-24",
+      "type": "sell",
+      "code": "002426",
+      "name": "胜利精密",
+      "msg": "不板就走: 2.80×600股 (净 ¥-106.82)"
+    },
+    {
+      "date": "2026-09-24",
+      "type": "sell",
+      "code": "600293",
+      "name": "三峡新材",
+      "msg": "不板就走: 3.78×500股 (净 ¥+29.06)"
+    },
+    {
+      "date": "2026-09-24",
+      "type": "sell",
+      "code": "002849",
+      "name": "威星智能",
+      "msg": "不板就走: 24.75×100股 (净 ¥+166.26)"
     }
   ]
 }
