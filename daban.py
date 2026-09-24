@@ -12,7 +12,7 @@
   4. 数据源: 东财涨停池(当日), 含封板资金/首次封板时间/炸板次数/连板数/换手/市值/行业
 
 选股逻辑 (打什么板):
-  - 连板数 ≤3 (首板优先加分, 二板中性, 三板高标减分)
+  - 连板数 ≤3 (回测: 连板越高平均收益越高, 连板2+加分)
   - 炸板次数 ≤1 (最好一次封死)
   - 早盘封板 (首次封板 ≤10:30, 尾盘板=弱不碰)
   - 换手率 5~25% (过低买不进/一字板, 过高分歧大)
@@ -157,13 +157,8 @@ def screen(df, trade_date):
         # 评分: 封板质量 + 连板 + 主线板块加成 + 秒板扣分
         score = 0
         score += 0 if breaks == 0 else -20
-        # 连板高度: 首板晋级空间大/断板代价小 → 加分; 高标断板概率高/代价大 → 减分
-        if conn == 1:
-            score += 10
-        elif conn == 2:
-            score += 0
-        else:  # conn >= 3
-            score -= 10
+        # 连板高度: 回测(120天)显示连板越高平均收益越高(首板1.2%<二板2.4%<三板4.6%), 奖励连板
+        score += 10 if conn >= 2 else 0
         score += sector_cnt.get(sector, 0) * 3
         score += -5 if miaoban else 0
         picks.append({
@@ -177,7 +172,7 @@ def screen(df, trade_date):
             "score": score,
         })
 
-    picks.sort(key=lambda x: (-x["score"], x["consecutive"]))
+    picks.sort(key=lambda x: (-x["score"], -x["consecutive"]))
 
     # 情绪周期: 涨停家数 + 连板高度 + 炸板率(封板质量)
     break_rate = break_homes / total * 100 if total else 0
