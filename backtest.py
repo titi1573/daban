@@ -137,10 +137,12 @@ def build_pool(days, daily_map, basic_map, info):
 
 
 def score_pick(p, sector_cnt, mode):
-    """打分: mode='first'(首板优先) 或 'chase'(连板奖励,旧版)"""
+    """打分: first=首板优先, chase=连板奖励(二板三板都+10), refined=精修(二板+10/三板+5)"""
     conn = p["conn"]
     if mode == "first":
         conn_score = 10 if conn == 1 else (0 if conn == 2 else -10)
+    elif mode == "refined":
+        conn_score = 0 if conn == 1 else (10 if conn == 2 else 5)
     else:  # chase
         conn_score = 10 if conn >= 2 else 0
     return conn_score + sector_cnt.get(p["industry"], 0) * 3
@@ -203,7 +205,7 @@ def run_backtest(n_days, factor=0.95):
                 break  # 停牌, 顺延不了就停
         return bars
 
-    for mode in ("first", "chase"):
+    for mode in ("first", "chase", "refined"):
         trades = []
         for i, d in enumerate(buy_days):
             idx = days.index(d)
@@ -236,7 +238,7 @@ def report(mode, trades):
         print(f"[{mode}] 无交易")
         return
     df = pd.DataFrame(trades)
-    label = "首板优先" if mode == "first" else "连板奖励(旧)"
+    label = {"first": "首板优先", "chase": "连板奖励", "refined": "精修(二板+10/三板+5)"}[mode]
     def stats(sub):
         if sub.empty:
             return {"n": 0, "win": None, "avg": None, "sum": None}
