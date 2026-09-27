@@ -128,12 +128,10 @@ def build_pool(days, daily_map, basic_map, info):
             while j >= 0 and code in limit_sets[days[j]]:
                 conn += 1
                 j -= 1
-            lp = limit_pct(code, r["name"])
-            yiziban = r["open"] >= r["pre_close"] * (1 + lp - 0.005)
             rows.append({"ts_code": code, "name": r["name"], "industry": r["industry"],
                          "close": r["close"], "pct_chg": r["pct_chg"],
                          "turnover": r["turnover_rate"], "circ_mv": r["circ_mv"],
-                         "conn": conn, "yiziban": yiziban})
+                         "conn": conn, "open_pct": r["open"] / r["pre_close"] - 1})
         pools[d] = pd.DataFrame(rows)
     return pools
 
@@ -148,9 +146,12 @@ def score_pick(p, sector_cnt, mode):
     return conn_score + sector_cnt.get(p["industry"], 0) * 3
 
 
-def apply_filters(pool):
-    """核心选股过滤 (含排除一字板/买不进)"""
-    pool = pool[~pool["yiziban"]]  # 排除一字板(开盘即涨停, 买不进)
+def apply_filters(pool, factor=0.95):
+    """核心选股过滤; factor=买不进阈值: 开盘涨幅≥涨停幅度*factor 视为买不进(秒板/一字板)"""
+    def buyable(r):
+        code = r["ts_code"].split(".")[0]
+        return r["open_pct"] < limit_pct(code, r["name"]) * factor
+    pool = pool[pool.apply(buyable, axis=1)]  # 排除开盘接近涨停(买不进)
     pool = pool[(pool["conn"] <= MAX_CONSECUTIVE)]
     pool = pool[(pool["turnover"] >= MIN_TURNOVER) & (pool["turnover"] <= MAX_TURNOVER)]
     pool = pool[(pool["circ_mv"] <= MAX_FLOAT_MV_WAN)]
@@ -173,10 +174,11 @@ def simulate_sell(entry, code, name, next_bars):
     return None, None, "持有中"
 
 
-def run_backtest(n_days):
+def run_backtest(n_days, factor=0.95):
     days = fetch_trade_days(n_days)
     buy_days = days[:n_days]
-    print(f"回测区间: {buy_days[0]} ~ {buy_days[-1]} ({n_days} 个买入日, 共 {len(days)} 天数据)")
+    label = "保守(排除秒板)" if factor < 0.9 else "激进(只排除一字板)"
+    print(f"回测区间: {buy_days[0]} ~ {buy_days[-1]} | 买不进阈值 factor={factor} ({label})")
 
     info = fetch_info()
     daily_map, basic_map = {}, {}
@@ -205,7 +207,7 @@ def run_backtest(n_days):
         trades = []
         for i, d in enumerate(buy_days):
             idx = days.index(d)
-            pool = apply_filters(pools[d])
+            pool = apply_filters(pools[d], factor)
             if pool.empty:
                 continue
             sector_cnt = pool["industry"].value_counts().to_dict()
@@ -260,5 +262,6 @@ def report(mode, trades):
 
 
 if __name__ == "__main__":
-    n = int(sys.argv[sys.argv.index("--days") + 1]) if "--days" in sys.argv else 60
-    run_backtest(n)
+    n = int(sys.argv[sys.argv.index("--days") + 1]) if "--days" in sys.argv else 120
+    factor = float(sys.argv[sys.argv.index("--factor") + 1]) if "--factor" in sys.argv else 0.95
+    run_backtest(n, factor)
