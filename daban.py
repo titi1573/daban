@@ -2,7 +2,7 @@
 打板策略 (追涨停) - 高风险短线, 当日选股 → 次日卖出
 独立项目: 与 stock-review(价值/动量策略) 完全分离
 
-用法: python daban.py
+用法: python daban.py [--conservative | --aggressive] [--no-yiziban 等]
 输出: data/latest/daban.json
 
 ⚠️ 重要提示:
@@ -56,6 +56,19 @@ MAINLINE_MIN_COUNT = 3             # 主线板块最少涨停家数(连板股须
 REQUIRE_MAINLINE_FOR_MULTI = True  # 连板2+必须主线板块
 BREAK_RATE_GOOD = 40               # 情绪"好"的炸板率上限 %
 BREAK_RATE_MID = 60                # 情绪"中"的炸板率上限 %
+
+# 策略预设: 保守(首板优先/排除秒板) vs 激进(精修连板/秒板只扣分)
+STRATEGY_PRESETS = {
+    "conservative": {"label": "保守", "conn_score": {1: 10, 2: 0, 3: -10},
+                     "exclude_miaoban": True, "break_good": 30, "break_mid": 45,
+                     "consecutive_desc": False},
+    "aggressive": {"label": "激进", "conn_score": {1: 0, 2: 10, 3: 5},
+                   "exclude_miaoban": False, "break_good": 40, "break_mid": 60,
+                   "consecutive_desc": True},
+}
+CONN_SCORE = STRATEGY_PRESETS["aggressive"]["conn_score"]
+EXCLUDE_MIAOBAN = False
+CONSECUTIVE_DESC = True
 
 
 def is_st(name):
@@ -147,6 +160,8 @@ def screen(df, trade_date):
         if EXCLUDE_YIZIBAN and seal_time <= YIZIBAN_SEAL:
             continue
         miaoban = seal_time <= MIAOBAN_SEAL  # 秒板(开盘秒封), 可能买不进
+        if EXCLUDE_MIAOBAN and miaoban:      # 保守策略: 秒板直接排除
+            continue
         # 2) 20%板(创业/科创)只打首板, 连板2+断板代价大
         if EXCLUDE_20PCT_MULTI and conn >= 2 and board_pct(code, name) >= 0.20:
             continue
@@ -157,11 +172,8 @@ def screen(df, trade_date):
         # 评分: 封板质量 + 连板 + 主线板块加成 + 秒板扣分
         score = 0
         score += 0 if breaks == 0 else -20
-        # 连板高度(精修): 二板+10(最稳), 三板+5(超额含秒板水分, 打折)
-        if conn == 2:
-            score += 10
-        elif conn >= 3:
-            score += 5
+        # 连板高度: 由策略预设 CONN_SCORE 决定 (保守=首板优先 / 激进=精修连板)
+        score += CONN_SCORE.get(conn, 0)
         score += sector_cnt.get(sector, 0) * 3
         score += -5 if miaoban else 0
         picks.append({
@@ -175,7 +187,8 @@ def screen(df, trade_date):
             "score": score,
         })
 
-    picks.sort(key=lambda x: (-x["score"], -x["consecutive"]))
+    _desc = -1 if CONSECUTIVE_DESC else 1
+    picks.sort(key=lambda x: (-x["score"], _desc * x["consecutive"]))
 
     # 情绪周期: 涨停家数 + 连板高度 + 炸板率(封板质量)
     break_rate = break_homes / total * 100 if total else 0
@@ -200,7 +213,17 @@ def screen(df, trade_date):
 
 
 def main():
-    global EXCLUDE_YIZIBAN, EXCLUDE_20PCT_MULTI, REQUIRE_MAINLINE_FOR_MULTI
+    global EXCLUDE_YIZIBAN, EXCLUDE_20PCT_MULTI, REQUIRE_MAINLINE_FOR_MULTI, \
+           CONN_SCORE, EXCLUDE_MIAOBAN, BREAK_RATE_GOOD, BREAK_RATE_MID, CONSECUTIVE_DESC
+
+    strat = "conservative" if "--conservative" in sys.argv else "aggressive"
+    p = STRATEGY_PRESETS[strat]
+    CONN_SCORE = p["conn_score"]
+    EXCLUDE_MIAOBAN = p["exclude_miaoban"]
+    BREAK_RATE_GOOD = p["break_good"]
+    BREAK_RATE_MID = p["break_mid"]
+    CONSECUTIVE_DESC = p["consecutive_desc"]
+
     if "--no-yiziban" in sys.argv:
         EXCLUDE_YIZIBAN = False
     if "--no-20pct" in sys.argv:
@@ -208,7 +231,7 @@ def main():
     if "--no-mainline" in sys.argv:
         REQUIRE_MAINLINE_FOR_MULTI = False
 
-    print("=== 打板选股(追涨停) ===\n")
+    print(f"=== 打板选股(追涨停) [{p['label']}] ===\n")
     trade_date = latest_trade_date()
     print(f"交易日: {trade_date.strftime('%Y-%m-%d')}\n")
     try:
