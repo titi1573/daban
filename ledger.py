@@ -4,7 +4,7 @@
 
 用法:
   python ledger.py            # 查看账户台账(现金/持仓/已平仓/总资产/胜率) + 生成 data/LEDGER.md
-  python ledger.py --buy      # 读 data/latest/daban.json 候选, 挂涨停价买入(建仓)
+  python ledger.py --buy [--conservative | --aggressive]  # 读 daban.json 建仓(自动应用对应仓位)
   python ledger.py --reset    # 重置账户(清空所有记录)
 
 闭环: daban.py(选股) → ledger.py --buy(买入) → sell_sim.py(次日卖出) → ledger.py(汇总)
@@ -15,6 +15,8 @@ from datetime import date
 from pathlib import Path
 
 import akshare as ak
+
+from strategy import STRATEGY_PRESETS, resolve_strategy
 
 DATA_DIR = Path("data")
 LATEST_DIR = DATA_DIR / "latest"
@@ -307,6 +309,12 @@ def render_ledger_md(state):
 
 
 def main():
+    global POSITION_PCT, MAX_POSITIONS
+    strat = resolve_strategy(sys.argv)
+    p = STRATEGY_PRESETS[strat]
+    POSITION_PCT = p["position_pct"]
+    MAX_POSITIONS = p["max_positions"]
+
     if "--reset" in sys.argv:
         save_state(init_state())
         print("账户已重置")
@@ -320,7 +328,8 @@ def main():
             print("缺少 daban.json 或暂无候选, 请先运行 python daban.py")
             return
         n = buy_from_picks(state, result)
-        print(f"本次建仓 {n} 只 (候选 {len(result['picks'])} 只, 情绪「{result.get('sentiment')}」)")
+        print(f"本次建仓 {n} 只 [{p['label']}·单票{p['position_pct']:.0%}/最多{p['max_positions']}只] "
+              f"(候选 {len(result['picks'])} 只, 情绪「{result.get('sentiment')}」)")
 
     print_account(state)
     render_ledger_md(state)

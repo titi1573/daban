@@ -37,6 +37,8 @@ from pathlib import Path
 
 import akshare as ak
 
+from strategy import STRATEGY_PRESETS, resolve_strategy
+
 LATEST_DIR = Path("data/latest")
 
 # 选股参数
@@ -57,15 +59,7 @@ REQUIRE_MAINLINE_FOR_MULTI = True  # 连板2+必须主线板块
 BREAK_RATE_GOOD = 40               # 情绪"好"的炸板率上限 %
 BREAK_RATE_MID = 60                # 情绪"中"的炸板率上限 %
 
-# 策略预设: 保守(首板优先/排除秒板) vs 激进(精修连板/秒板只扣分)
-STRATEGY_PRESETS = {
-    "conservative": {"label": "保守", "conn_score": {1: 10, 2: 0, 3: -10},
-                     "exclude_miaoban": True, "break_good": 30, "break_mid": 45,
-                     "consecutive_desc": False},
-    "aggressive": {"label": "激进", "conn_score": {1: 0, 2: 10, 3: 5},
-                   "exclude_miaoban": False, "break_good": 40, "break_mid": 60,
-                   "consecutive_desc": True},
-}
+# 连板打分/秒板/排序 的运行期默认值(由 main 按策略预设覆盖)
 CONN_SCORE = STRATEGY_PRESETS["aggressive"]["conn_score"]
 EXCLUDE_MIAOBAN = False
 CONSECUTIVE_DESC = True
@@ -216,7 +210,7 @@ def main():
     global EXCLUDE_YIZIBAN, EXCLUDE_20PCT_MULTI, REQUIRE_MAINLINE_FOR_MULTI, \
            CONN_SCORE, EXCLUDE_MIAOBAN, BREAK_RATE_GOOD, BREAK_RATE_MID, CONSECUTIVE_DESC
 
-    strat = "conservative" if "--conservative" in sys.argv else "aggressive"
+    strat = resolve_strategy(sys.argv)
     p = STRATEGY_PRESETS[strat]
     CONN_SCORE = p["conn_score"]
     EXCLUDE_MIAOBAN = p["exclude_miaoban"]
